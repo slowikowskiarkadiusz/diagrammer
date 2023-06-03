@@ -1,0 +1,42 @@
+<div style="width: 100%; height: 100%; position: relative; border: 1px black solid;"
+     (wheel)="onScroll($event)">
+  <!--     (mouseup)="onMouseUp($event)"-->
+  <!--     (mousemove)="onMouseMove($event)"-->
+  <svg #board
+       width="100%"
+       height="100%"
+       style="position: absolute;">
+    <!--    <ng-container *ngFor="let node of nodes">-->
+    <!--      <circle *ngIf="!!node.asCircle"-->
+    <!--              [attr.r]="node.asCircle.radius"-->
+    <!--              [attr.cx]="node.center.x"-->
+    <!--              [attr.cy]="node.center.y"-->
+    <!--              [attr.stroke]="node.isFixed ? 'blue' : 'green'"-->
+    <!--              stroke-width="3"-->
+    <!--              fill="transparent"-->
+    <!--              class="svg-node">-->
+    <!--      </circle>-->
+    <!--      <polygon *ngIf="!!node.asTriangle"-->
+    <!--               [attr.points]="node.asTriangle.svgPoints"-->
+    <!--               [attr.stroke]="node.isFixed ? 'blue' : 'green'"-->
+    <!--               stroke-width="3"-->
+    <!--               fill="transparent"-->
+    <!--               class="svg-node">-->
+    <!--      </polygon>-->
+    <!--    </ng-container>-->
+  </svg>
+
+  <div class="overlay">
+    <!--    <ng-container *ngFor="let node of nodes">-->
+    <!--      <div *ngIf="!!node.asCircle"-->
+    <!--           class="html-node"-->
+    <!--           [style.left]="(node.center.x - node.asCircle.radius) + 'px'"-->
+    <!--           [style.top]="(node.center.y - node.asCircle.radius) + 'px'"-->
+    <!--           [style.width]="node.asCircle.radius * 2 + 'px'"-->
+    <!--           [style.height]="node.asCircle.radius * 2 + 'px'">-->
+    <!--        &lt;!&ndash;         (mousedown)="onMouseDown($event, node)"&ndash;&gt;-->
+    <!--        <span class="node-text">{{node.label ?? 'Magaya Service (BIC)'}}</span>-->
+    <!--      </div>-->
+    <!--    </ng-container>-->
+  </div>
+</div>
