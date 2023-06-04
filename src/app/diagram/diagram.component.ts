@@ -1,18 +1,11 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { v2d } from "./v2d";
-import { Circle } from "./figures/circle";
 import { Triangle } from "./figures/triangle";
 import { Square } from "./figures/square";
 import { Figure } from "./figures/figure";
-
-// interface Figure {
-//   label?: string;
-//   x: number;
-//   y: number;
-//   r: number;
-//   isFixed?: boolean;
-//   isDisabled?: boolean;
-// }
+import { Circle } from "./figures/circle";
+import { Polygon } from "./figures/polygon";
+import { Point } from "./figures/point";
 
 @Component({
   selector: 'app-diagram',
@@ -22,12 +15,12 @@ import { Figure } from "./figures/figure";
 export class DiagramComponent implements AfterViewInit {
   @ViewChild('board') public board?: ElementRef<HTMLElement>;
 
-  public nodes: Figure[] = [
-    new Circle('any label', new v2d(200, 200), 50),
-    new Triangle('any label', new v2d(200, 300), new v2d(250, 300), new v2d(225, 350)),
+  public figures: Figure[] = [
+    new Point('any label', new v2d(200, 200)),
+    new Square('any label', new v2d(450, 350), new v2d(450, 450), new v2d(350, 450), new v2d(350, 350)),
   ];
 
-  public zoom: number = 1;
+  public previousMousePosition: v2d = new v2d(0, 0);
   public mousePosition: v2d = new v2d(0, 0);
 
   private draggedNode?: Figure;
@@ -41,13 +34,55 @@ export class DiagramComponent implements AfterViewInit {
     this.boardSize.x = this.board?.nativeElement.clientWidth ?? 0;
     this.boardSize.y = this.board?.nativeElement.clientHeight ?? 0;
     setInterval(() => {
-      for (const node0 of this.nodes)
-        for (const node1 of this.nodes) {
-          if (node0.isDisabled || node1.isDisabled) continue;
-          if (node0 != node1 && Figure.doCollideCircleCircle(node0 as Circle, node1 as Circle))
-            this.collide(node0, node1);
+      for (const figure0 of this.figures)
+        for (const figure1 of this.figures) {
+          if (figure0.isDisabled || figure1.isDisabled) continue;
+          if (figure0 != figure1) {
+            let isCircleAisCircle = this.isCircle(figure0) && this.isCircle(figure1) && Figure.doCollideCircleCircle(figure0 as Circle, figure1 as Circle);
+            let isTriangleAndCircle = this.isTriangle(figure0) && this.isCircle(figure1) && Figure.doCollideTriangleCircle(figure0 as Triangle, figure1 as Circle);
+            let isTriangleAndTriangle = this.isTriangle(figure0) && this.isTriangle(figure1) && Figure.doCollideTriangleTriangle(figure0 as Triangle, figure1 as Triangle);
+            let isTriangleAndSquare = this.isTriangle(figure0) && this.isSquare(figure1) && Figure.doCollideTriangleSquare(figure0 as Triangle, figure1 as Square);
+            let isSquareAndSquare = this.isSquare(figure0) && this.isSquare(figure1) && Figure.doCollideSquareSquare(figure0 as Square, figure1 as Square);
+
+            if (isCircleAisCircle || isTriangleAndCircle || isTriangleAndTriangle || isTriangleAndSquare || isSquareAndSquare)
+              this.collide(figure0, figure1);
+          }
         }
+
+      this.figures.forEach(f => f.updatePosition());
     }, 0);
+  }
+
+  public asCircle(figure: Figure): Circle {
+    return figure as Circle;
+  }
+
+  public isCircle(figure: Figure): boolean {
+    return figure instanceof Circle;
+  }
+
+  public asSquare(figure: Figure): Square {
+    return figure as Square;
+  }
+
+  public isSquare(figure: Figure): boolean {
+    return figure instanceof Square;
+  }
+
+  public asTriangle(figure: Figure): Triangle {
+    return figure as Triangle;
+  }
+
+  public isTriangle(figure: Figure): boolean {
+    return figure instanceof Triangle;
+  }
+
+  public asPolygon(figure: Figure): Polygon {
+    return figure as Polygon;
+  }
+
+  public isPolygon(figure: Figure): boolean {
+    return figure instanceof Polygon;
   }
 
   public figureType(figure: Figure): 'circle' | 'square' | 'triangle' {
@@ -61,10 +96,10 @@ export class DiagramComponent implements AfterViewInit {
     throw Error('idk');
   }
 
-  private collide(node0: Figure, node1: Figure): void {
+  private collide(figure0: Figure, figure1: Figure): void {
     let differenceMagnitude = new v2d(
-      node0.center.x - node1.center.x,
-      node0.center.y - node1.center.y,
+      figure0.center.x - figure1.center.x,
+      figure0.center.y - figure1.center.y,
     );
 
     if (differenceMagnitude.x + differenceMagnitude.y == 0) {
@@ -77,20 +112,20 @@ export class DiagramComponent implements AfterViewInit {
     differenceMagnitude.x /= max;
     differenceMagnitude.y /= max;
 
-    node0.move(differenceMagnitude, this.boardSize);
-    node1.move(differenceMagnitude.multiply(-1), this.boardSize);
+    figure0.moveBy(differenceMagnitude);
+    figure1.moveBy(differenceMagnitude.multiply(-1));
   }
 
   public onScroll($event: Event) {
     // console.log($event);
   }
 
-  public onMouseDown($event: MouseEvent, node: Figure) {
-    this.draggedNode = node;
+  public onMouseDown($event: MouseEvent, figure: Figure) {
+    this.draggedNode = figure;
     this.draggedNode.isDisabled = true;
     this.draggingNodeInterpolation = setInterval(() => {
-      node.center.x = this.mousePosition.x;
-      node.center.y = this.mousePosition.y;
+      figure.moveTo(this.mousePosition);
+      this.previousMousePosition = this.mousePosition;
     }, 0);
   }
 

@@ -11,6 +11,10 @@ export class v2d {
     return new v2d(from.x, from.y);
   }
 
+  public copy(): v2d {
+    return new v2d(this.x, this.y);
+  }
+
   public add(v: v2d): v2d {
     return new v2d(this.x + v.x, this.y + v.y);
   }
@@ -44,7 +48,7 @@ export class v2d {
   }
 
   public static distance(v1: v2d, v2: v2d): number {
-    let result = Math.sqrt(Math.pow(v1.x, 2) + Math.pow(v1.y, 2));
+    let result = Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2));
     return result;
   }
 }

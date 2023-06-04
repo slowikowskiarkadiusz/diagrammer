@@ -14,27 +14,21 @@ export abstract class Figure {
 
   public abstract get center(): v2d;
 
-  public abstract move(by: v2d, boardSize: v2d): void;
+  public abstract get animatedCenter(): v2d;
 
-  public asCircle(): Circle | null {
-    if (this instanceof Circle)
-      return this as Circle;
+  public abstract get vertices(): v2d[];
 
-    return null;
-  }
+  protected abstract get animatedVertices(): v2d[];
 
-  public asSquare(): Square | null {
-    if (this instanceof Square)
-      return this as Square;
+  public abstract moveBy(by: v2d): void;
 
-    return null;
-  }
+  public abstract moveTo(to: v2d): void;
 
-  public asTriangle(): Triangle | null {
-    if (this instanceof Triangle)
-      return this as Triangle;
-
-    return null;
+  public updatePosition(): void {
+    this.animatedVertices.forEach((av, i) => {
+      av.x += (this.vertices[i].x - av.x) / 20;
+      av.y += (this.vertices[i].y - av.y) / 20;
+    });
   }
 
   public static isBetween(start: v2d, end: v2d, pointBetween: v2d): boolean {
@@ -65,8 +59,10 @@ export abstract class Figure {
   }
 
   public static doCollideTriangleCircle(triangle: Triangle, circle: Circle): boolean {
-    let isAnyOutside = triangle.vertices.some(tv => v2d.distance(tv, circle.center) < circle.radius);
+    let isAnyInside = triangle.vertices.some(tv => v2d.distance(tv, circle.center) < circle.radius);
     let verticesPairs = [[triangle.v1, triangle.v2], [triangle.v2, triangle.v3], [triangle.v1, triangle.v3]];
+
+    if (isAnyInside) return true;
 
     let isAnyColliding = verticesPairs.some(pair => {
       let pointOnLine = Figure.nearestPointOnLine(pair[0], pair[1].subtract(pair[0]), circle.center);
@@ -74,7 +70,27 @@ export abstract class Figure {
       return isPointBetween;
     });
 
-    return false;
+    return isAnyColliding;
   }
 
+  public static doCollideTriangleTriangle(triangle0: Triangle, triangle1: Triangle): boolean {
+    let is0in1 = triangle0.vertices.some(v => triangle1.isPointInTriangle(v));
+    let is1in0 = triangle1.vertices.some(v => triangle0.isPointInTriangle(v));
+
+    return is1in0 || is0in1;
+  }
+
+  public static doCollideTriangleSquare(triangle: Triangle, square: Square): boolean {
+    let is0in1 = triangle.vertices.some(v => square.isPointInSquare(v));
+    let is1in0 = square.vertices.some(v => triangle.isPointInTriangle(v));
+
+    return is1in0 || is0in1;
+  }
+
+  public static doCollideSquareSquare(square0: Square, square1: Square): boolean {
+    let is0in1 = square0.vertices.some(v => square1.isPointInSquare(v));
+    let is1in0 = square1.vertices.some(v => square0.isPointInSquare(v));
+
+    return is1in0 || is0in1;
+  }
 }
