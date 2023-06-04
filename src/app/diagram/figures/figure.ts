@@ -2,6 +2,7 @@ import { v2d } from "../v2d";
 import { Circle } from "./circle";
 import { Triangle } from "./triangle";
 import { Square } from "./square";
+import { Point } from "./point";
 
 export abstract class Figure {
   public label!: string;
@@ -92,5 +93,11 @@ export abstract class Figure {
     let is1in0 = square1.vertices.some(v => square0.isPointInSquare(v));
 
     return is1in0 || is0in1;
+  }
+
+  public static doCollideSquarePoint(figure: Square, figure2: Point) {
+    let result = figure.isPointInSquare(figure2.center);
+    console.log(result);
+    return result;
   }
 }

@@ -30,6 +30,21 @@ export abstract class Polygon extends Figure {
     return result;
   }
 
+  public isPointInside(point: v2d): boolean {
+    let vertices = this.vertices;
+
+    let minX = vertices.reduce((p, c) => (p.x < c.x) ? p : c).x - 1;
+
+    let intersects: boolean[] = [];
+
+    for (let i = 0; i < vertices.length; i++) {
+      let ii = (i + 1) % vertices.length;
+      intersects.push(this.doIntersect(new v2d(minX, point.y), point, vertices[i], vertices[ii]));
+    }
+    
+    return intersects.some(x => x);
+  }
+
   private ccw(A: v2d, B: v2d, C: v2d): boolean {
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
   }

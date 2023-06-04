@@ -16,11 +16,20 @@
               stroke-width="3"
               class="svg-node">
       </circle>
+      <circle *ngIf="isPoint(figure)"
+              r="5"
+              [attr.cx]="figure.animatedCenter.x"
+              [attr.cy]="figure.animatedCenter.y"
+              [attr.stroke]="figure.isFixed ? 'blue' : 'red'"
+              [attr.fill]="figure.isFixed ? 'blue' : 'red'"
+              stroke-width="1"
+              class="svg-node">
+      </circle>
       <polygon *ngIf="isPolygon(figure)"
                (mousedown)="onMouseDown($event, figure)"
                [attr.points]="asPolygon(figure).animatedSvgPoints"
                [attr.stroke]="figure.isFixed ? 'blue' : 'green'"
-               [attr.fill]="figure.isFixed ? 'blue' : 'green'"
+               fill="transparent"
                stroke-width="3"
                class="svg-node">
       </polygon>

@@ -17,7 +17,7 @@ export class DiagramComponent implements AfterViewInit {
 
   public figures: Figure[] = [
     new Point('any label', new v2d(200, 200)),
-    new Square('any label', new v2d(450, 350), new v2d(450, 450), new v2d(350, 450), new v2d(350, 350)),
+    new Triangle('any label', new v2d(450, 350), new v2d(450, 450), new v2d(350, 450)),
   ];
 
   public previousMousePosition: v2d = new v2d(0, 0);
@@ -36,16 +36,17 @@ export class DiagramComponent implements AfterViewInit {
     setInterval(() => {
       for (const figure0 of this.figures)
         for (const figure1 of this.figures) {
-          if (figure0.isDisabled || figure1.isDisabled) continue;
+          // if (figure0.isDisabled || figure1.isDisabled) continue;
           if (figure0 != figure1) {
             let isCircleAisCircle = this.isCircle(figure0) && this.isCircle(figure1) && Figure.doCollideCircleCircle(figure0 as Circle, figure1 as Circle);
             let isTriangleAndCircle = this.isTriangle(figure0) && this.isCircle(figure1) && Figure.doCollideTriangleCircle(figure0 as Triangle, figure1 as Circle);
             let isTriangleAndTriangle = this.isTriangle(figure0) && this.isTriangle(figure1) && Figure.doCollideTriangleTriangle(figure0 as Triangle, figure1 as Triangle);
             let isTriangleAndSquare = this.isTriangle(figure0) && this.isSquare(figure1) && Figure.doCollideTriangleSquare(figure0 as Triangle, figure1 as Square);
             let isSquareAndSquare = this.isSquare(figure0) && this.isSquare(figure1) && Figure.doCollideSquareSquare(figure0 as Square, figure1 as Square);
+            let isSquareAndPoint = this.isSquare(figure0) && this.isPoint(figure1) && Figure.doCollideSquarePoint(figure0 as Square, figure1 as Point);
 
-            if (isCircleAisCircle || isTriangleAndCircle || isTriangleAndTriangle || isTriangleAndSquare || isSquareAndSquare)
-              this.collide(figure0, figure1);
+            // if (isCircleAisCircle || isTriangleAndCircle || isTriangleAndTriangle || isTriangleAndSquare || isSquareAndSquare || isSquareAndPoint)
+            //   this.collide(figure0, figure1);
           }
         }
 
@@ -59,6 +60,14 @@ export class DiagramComponent implements AfterViewInit {
 
   public isCircle(figure: Figure): boolean {
     return figure instanceof Circle;
+  }
+
+  public asPoint(figure: Figure): Point {
+    return figure as Point;
+  }
+
+  public isPoint(figure: Figure): boolean {
+    return figure instanceof Point;
   }
 
   public asSquare(figure: Figure): Square {
