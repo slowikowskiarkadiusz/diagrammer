@@ -2,10 +2,33 @@
      (wheel)="onScroll($event)"
      (mouseup)="onMouseUp($event)"
      (mousemove)="onMouseMove($event)">
-  <svg #board
+  <svg #svg
        width="100%"
        height="100%"
        style="position: absolute;">
+    <ng-container *ngFor="let line of lines">
+      <path [attr.d]="line.animatedSvgPath"
+            stroke-width="2"
+            fill="transparent"
+            stroke="white">
+      </path>
+<!--      <circle r="5"-->
+<!--              [attr.cx]="line.origin!().x"-->
+<!--              [attr.cy]="line.origin!().y"-->
+<!--              stroke="red"-->
+<!--              fill="red"-->
+<!--              stroke-width="1"-->
+<!--              class="svg-node">-->
+<!--      </circle>-->
+<!--      <circle r="5"-->
+<!--              [attr.cx]="line.destination!().x"-->
+<!--              [attr.cy]="line.destination!().y"-->
+<!--              stroke="pink"-->
+<!--              fill="pink"-->
+<!--              stroke-width="1"-->
+<!--              class="svg-node">-->
+<!--      </circle>-->
+    </ng-container>
     <ng-container *ngFor="let figure of figures">
       <circle *ngIf="isCircle(figure)"
               (mousedown)="onMouseDown($event, figure)"
@@ -45,8 +68,9 @@
            [style.top]="(figure.animatedCenter.y - asCircle(figure).radius) + 'px'"
            [style.width]="asCircle(figure).radius * 2 + 'px'"
            [style.height]="asCircle(figure).radius * 2 + 'px'">
-        <div style="width: 75%; height: 75%; margin: auto;text-align: center;">
-          <span class="node-text">{{figure.label ?? 'Magaya Service (BIC)'}}</span>
+        <div style="width: 70%; height: 70%; margin: auto;text-align: center; display: flex;">
+          <span appFigureWithLabel
+                class="node-text m-auto">{{figure.label}}</span>
         </div>
       </div>
     </ng-container>

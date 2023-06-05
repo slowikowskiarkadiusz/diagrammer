@@ -14,6 +14,26 @@ export class Circle extends Figure {
     this.radius = radius;
   }
 
+  protected get minBounds(): v2d {
+    let min: v2d = new v2d(this._center.x - this.radius, this._center.y - this.radius);
+    return min;
+  }
+
+  protected get maxBounds(): v2d {
+    let max: v2d = new v2d(this._center.x + this.radius, this._center.y + this.radius);
+    return max;
+  }
+
+  protected get animatedMinBounds(): v2d {
+    let min: v2d = new v2d(this.animated_center.x - this.radius, this.animated_center.y - this.radius);
+    return min;
+  }
+
+  protected get animatedMaxBounds(): v2d {
+    let max: v2d = new v2d(this.animated_center.x + this.radius, this.animated_center.y + this.radius);
+    return max;
+  }
+
   public get center(): v2d {
     return this._center;
   }
@@ -33,19 +53,7 @@ export class Circle extends Figure {
   public moveBy(by: v2d): void {
     if (this.isFixed) return;
 
-    // if ((this._center.x) + by.x < this.radius)
-    //   this._center.x = this.radius;
-    // else if ((this._center.x) + by.x > boardSize.x - this.radius)
-    //   this._center.x = boardSize.x - this.radius;
-    // else
-    this._center.x += by.x;
-
-    // if ((this._center.y) + by.y < this.radius)
-    //   this._center.y = this.radius;
-    // else if ((this._center.y) + by.y > boardSize.y - this.radius)
-    //   this._center.y = boardSize.y - this.radius;
-    // else
-    this._center.y += by.y;
+    this.moveTo(this.center.add(by));
   }
 
   public isIntersectingWithCircle(circle1: Circle): boolean {
@@ -56,6 +64,21 @@ export class Circle extends Figure {
   }
 
   public moveTo(to: v2d): void {
+    if (this.isFixed) return;
     this._center = to;
+
+    if (to.x < this.radius)
+      this._center.x = this.radius;
+    else if (this.boardSize && to.x > this.boardSize.x - this.radius)
+      this._center.x = this.boardSize.x - this.radius;
+    else
+      this._center.x = to.x;
+
+    if (to.y < this.radius)
+      this._center.y = this.radius;
+    else if (this.boardSize && to.y > this.boardSize.y - this.radius)
+      this._center.y = this.boardSize.y - this.radius;
+    else
+      this._center.y = to.y;
   }
 }

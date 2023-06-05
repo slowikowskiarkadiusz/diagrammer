@@ -5,15 +5,14 @@
 
 .html-node {
   user-select: none;
+  pointer-events: none;
   border-radius: 100%;
   background-color: transparent;
   position: absolute;
   display: flex;
-  overflow-wrap: anywhere;
 }
 
 .svg-node {
-  user-select: none;
 }
 
 .node-text {

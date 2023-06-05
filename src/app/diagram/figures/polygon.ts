@@ -13,6 +13,26 @@ export class Polygon extends Figure {
     this.animatedVs = vertices.map(x => x.copy());
   }
 
+  protected get minBounds(): v2d {
+    let min: v2d = new v2d(this.vertices.reduce((p, c) => p.x < c.x ? p : c).x, this.vertices.reduce((p, c) => p.y < c.y ? p : c).y);
+    return min;
+  }
+
+  protected get maxBounds(): v2d {
+    let max: v2d = new v2d(this.vertices.reduce((p, c) => p.x > c.x ? p : c).x, this.vertices.reduce((p, c) => p.y > c.y ? p : c).y);
+    return max;
+  }
+
+  protected get animatedMinBounds(): v2d {
+    let min: v2d = new v2d(this.animatedVertices.reduce((p, c) => p.x < c.x ? p : c).x, this.animatedVertices.reduce((p, c) => p.y < c.y ? p : c).y);
+    return min;
+  }
+
+  protected get animatedMaxBounds(): v2d {
+    let max: v2d = new v2d(this.animatedVertices.reduce((p, c) => p.x > c.x ? p : c).x, this.animatedVertices.reduce((p, c) => p.y > c.y ? p : c).y);
+    return max;
+  }
+
   public moveBy(by: v2d): void {
     this.vs = this.vs.map(x => x.add(by));
   }

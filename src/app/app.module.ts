@@ -3,11 +3,13 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { DiagramComponent } from './diagram/diagram.component';
+import { FigureWithLabelDirective } from './figure-with-label.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
-    DiagramComponent
+    DiagramComponent,
+    FigureWithLabelDirective
   ],
   imports: [
     BrowserModule

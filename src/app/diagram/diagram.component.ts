@@ -5,6 +5,7 @@ import { Circle } from "./figures/circle";
 import { Polygon } from "./figures/polygon";
 import { Point } from "./figures/point";
 import { processLabel } from "../utils";
+import { Line } from "./figures/line";
 
 @Component({
   selector: 'app-diagram',
@@ -12,25 +13,24 @@ import { processLabel } from "../utils";
   styleUrls: ['./diagram.component.scss']
 })
 export class DiagramComponent implements AfterViewInit {
-  @ViewChild('board') public board?: ElementRef<HTMLElement>;
+  @ViewChild('svg') public svg?: any
 
   public figures: Figure[] = [];
-
-  public previousMousePosition: v2d = new v2d(0, 0);
+  public lines: Line[] = [];
   public mousePosition: v2d = new v2d(0, 0);
 
   private draggedNode?: Figure;
-  private boardSize: v2d = new v2d(0, 0);
+
   private draggingNodeInterpolation?: number;
 
   constructor() {
     let names = [
-      // "AcubizService",
-      // "Billing Domain Service",
-      // "BlobService (BIC)",
-      // "CarloService (BIC)",
-      // "Co2 Domain Service",
-      // "Co2Service (CarLoService)",
+      "AcubizService",
+      "Billing Domain Service",
+      "BlobService (BIC)",
+      "CarloService (BIC)",
+      "Co2 Domain Service",
+      "Co2Service (CarLoService)",
       // "CompassService (BIC)",
       // "DipService (BIC)",
       // "EdiService (BIC)",
@@ -59,7 +59,7 @@ export class DiagramComponent implements AfterViewInit {
       // "RoutingService (BIC)",
       // "SharepointService (BIC)",
       // "Shipping Order Domain Service",
-      "Shipping Order Service (Flex Service)",
+      // "Shipping Order Service(Flex Service)",
       // "ShippingOrderService (BIC)",
       // "StandardModelService (BIC)",
       // "Status Receiver Service",
@@ -69,14 +69,30 @@ export class DiagramComponent implements AfterViewInit {
       // "XmlService (BIC)",
     ];
 
+    this.figures.push(new Circle("Warehouse Purchase Order Domain Service", new v2d(400, 550), 75));
+    this.figures[0].isFixed = true;
+
     for (let i = 0; i < names.length; i++) {
-      this.figures.push(new Circle(processLabel(names[i]), new v2d(400, 400), 50));
+      let figure = new Circle(processLabel(names[i]), new v2d(400, 250), 50);
+      this.figures.push(figure);
+      this.lines.push(figure.lineTo(this.figures[0]));
+    }
+
+    for (let i = 0; i < names.length; i++) {
+      let figure = new Circle(processLabel(names[i]), new v2d(400, 850), 50);
+      this.figures.push(figure);
+      this.lines.push(figure.lineTo(this.figures[0]));
     }
   }
 
+  private get boardSize(): v2d {
+    let result = new v2d(this.svg?.nativeElement.clientWidth ?? 0, this.svg?.nativeElement.clientHeight ?? 0);
+    return result;
+  }
+
   public ngAfterViewInit(): void {
-    this.boardSize.x = this.board?.nativeElement.clientWidth ?? 0;
-    this.boardSize.y = this.board?.nativeElement.clientHeight ?? 0;
+    this.figures.forEach(f => f.setBoardSize(this.boardSize));
+
     setInterval(() => {
       for (const figure0 of this.figures)
         for (const figure1 of this.figures) {
@@ -152,7 +168,6 @@ export class DiagramComponent implements AfterViewInit {
     this.draggedNode.isDisabled = true;
     this.draggingNodeInterpolation = setInterval(() => {
       figure.moveTo(this.mousePosition);
-      this.previousMousePosition = this.mousePosition;
     }, 0);
   }
 
