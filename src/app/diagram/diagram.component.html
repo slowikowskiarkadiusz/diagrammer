@@ -8,6 +8,7 @@
        style="position: absolute;">
     <ng-container *ngFor="let figure of figures">
       <circle *ngIf="isCircle(figure)"
+              (mousedown)="onMouseDown($event, figure)"
               [attr.r]="asCircle(figure).radius"
               [attr.cx]="figure.animatedCenter.x"
               [attr.cy]="figure.animatedCenter.y"

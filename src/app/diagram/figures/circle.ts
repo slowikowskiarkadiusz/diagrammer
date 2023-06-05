@@ -38,16 +38,24 @@ export class Circle extends Figure {
     // else if ((this._center.x) + by.x > boardSize.x - this.radius)
     //   this._center.x = boardSize.x - this.radius;
     // else
-    //   this._center.x += by.x;
-    //
+    this._center.x += by.x;
+
     // if ((this._center.y) + by.y < this.radius)
     //   this._center.y = this.radius;
     // else if ((this._center.y) + by.y > boardSize.y - this.radius)
     //   this._center.y = boardSize.y - this.radius;
     // else
-    //   this._center.y += by.y;
+    this._center.y += by.y;
+  }
+
+  public isIntersectingWithCircle(circle1: Circle): boolean {
+    let x = this.center.x - circle1.center.x;
+    let y = this.center.y - circle1.center.y;
+    let result = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) < (this.radius + circle1.radius);
+    return result;
   }
 
   public moveTo(to: v2d): void {
+    this._center = to;
   }
 }

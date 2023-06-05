@@ -1,11 +1,10 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { v2d } from "./v2d";
-import { Triangle } from "./figures/triangle";
-import { Square } from "./figures/square";
 import { Figure } from "./figures/figure";
 import { Circle } from "./figures/circle";
 import { Polygon } from "./figures/polygon";
 import { Point } from "./figures/point";
+import { processLabel } from "../utils";
 
 @Component({
   selector: 'app-diagram',
@@ -15,10 +14,7 @@ import { Point } from "./figures/point";
 export class DiagramComponent implements AfterViewInit {
   @ViewChild('board') public board?: ElementRef<HTMLElement>;
 
-  public figures: Figure[] = [
-    new Point('any label', new v2d(200, 200)),
-    new Triangle('any label', new v2d(450, 350), new v2d(450, 450), new v2d(350, 450)),
-  ];
+  public figures: Figure[] = [];
 
   public previousMousePosition: v2d = new v2d(0, 0);
   public mousePosition: v2d = new v2d(0, 0);
@@ -28,6 +24,54 @@ export class DiagramComponent implements AfterViewInit {
   private draggingNodeInterpolation?: number;
 
   constructor() {
+    let names = [
+      "AcubizService",
+      "Billing Domain Service",
+      "BlobService (BIC)",
+      "CarloService (BIC)",
+      "Co2 Domain Service",
+      "Co2Service (CarLoService)",
+      "CompassService (BIC)",
+      "DipService (BIC)",
+      "EdiService (BIC)",
+      "EgenciaService",
+      "Employee Domain Service",
+      "EmployeeService",
+      "ETWCalculatorService",
+      "FlexService (BIC)",
+      "FtpService (BIC)",
+      "HttpService (BIC)",
+      "IES Service",
+      "JsonService (BIC)",
+      "MagayaService (BIC)",
+      "MediusService (CarLoService)",
+      "MediusService (PostingService)",
+      "MediusService (ReservationResponseService)",
+      "MediusService (ReservationService)",
+      "Package Status Domain Service",
+      "Package Status Service (Flex Service)",
+      "PackageStatusService (CarLoService)",
+      "Reservation Domain Service",
+      "ReservationPosting Domain Service",
+      "ReservationResponse Domain Service",
+      "Revenue Domain Service",
+      "Revenue Service (DWH)",
+      "RoutingService (BIC)",
+      "SharepointService (BIC)",
+      "Shipping Order Domain Service",
+      "Shipping Order Service (Flex Service)",
+      "ShippingOrderService (BIC)",
+      "StandardModelService (BIC)",
+      "Status Receiver Service",
+      "Warehouse Purchase Order Domain Service",
+      "WarehouseOrderService (BIC)",
+      "WebhookService (BIC)",
+      "XmlService (BIC)",
+    ];
+
+    for (let i = 0; i < names.length; i++) {
+      this.figures.push(new Circle(processLabel(names[i]), new v2d(400, 400), 50));
+    }
   }
 
   public ngAfterViewInit(): void {
@@ -36,20 +80,21 @@ export class DiagramComponent implements AfterViewInit {
     setInterval(() => {
       for (const figure0 of this.figures)
         for (const figure1 of this.figures) {
-          // if (figure0.isDisabled || figure1.isDisabled) continue;
+          if (figure0.isDisabled || figure1.isDisabled) continue;
           if (figure0 != figure1) {
-            let isCircleAisCircle = this.isCircle(figure0) && this.isCircle(figure1) && Figure.doCollideCircleCircle(figure0 as Circle, figure1 as Circle);
-            let isTriangleAndCircle = this.isTriangle(figure0) && this.isCircle(figure1) && Figure.doCollideTriangleCircle(figure0 as Triangle, figure1 as Circle);
-            let isTriangleAndTriangle = this.isTriangle(figure0) && this.isTriangle(figure1) && Figure.doCollideTriangleTriangle(figure0 as Triangle, figure1 as Triangle);
-            let isTriangleAndSquare = this.isTriangle(figure0) && this.isSquare(figure1) && Figure.doCollideTriangleSquare(figure0 as Triangle, figure1 as Square);
-            let isSquareAndSquare = this.isSquare(figure0) && this.isSquare(figure1) && Figure.doCollideSquareSquare(figure0 as Square, figure1 as Square);
-            let isSquareAndPoint = this.isSquare(figure0) && this.isPoint(figure1) && Figure.doCollideSquarePoint(figure0 as Square, figure1 as Point);
+            let isCircleAndCircle = this.isCircle(figure0) && this.isCircle(figure1) && (figure0 as Circle).isIntersectingWithCircle(figure1 as Circle);
+            let isPolygonAndPolygon = this.isPolygon(figure0) && this.isPolygon(figure1) && (figure0 as Polygon).isPolygonInside(figure1 as Polygon);
+            let isPolygonAndCircle = this.isPolygon(figure0) && this.isCircle(figure1) && (figure0 as Polygon).isCircleInside(figure1 as Circle);
+            let isPolygonAndPoint = this.isPolygon(figure0) && this.isPoint(figure1) && (figure0 as Polygon).isPointInside(figure1.center);
 
-            // if (isCircleAisCircle || isTriangleAndCircle || isTriangleAndTriangle || isTriangleAndSquare || isSquareAndSquare || isSquareAndPoint)
-            //   this.collide(figure0, figure1);
+            if (isCircleAndCircle || isPolygonAndPolygon || isPolygonAndPoint || isPolygonAndCircle)
+              this.collide(figure0, figure1);
           }
         }
 
+    }, 10);
+
+    setInterval(() => {
       this.figures.forEach(f => f.updatePosition());
     }, 0);
   }
@@ -70,39 +115,12 @@ export class DiagramComponent implements AfterViewInit {
     return figure instanceof Point;
   }
 
-  public asSquare(figure: Figure): Square {
-    return figure as Square;
-  }
-
-  public isSquare(figure: Figure): boolean {
-    return figure instanceof Square;
-  }
-
-  public asTriangle(figure: Figure): Triangle {
-    return figure as Triangle;
-  }
-
-  public isTriangle(figure: Figure): boolean {
-    return figure instanceof Triangle;
-  }
-
   public asPolygon(figure: Figure): Polygon {
     return figure as Polygon;
   }
 
   public isPolygon(figure: Figure): boolean {
     return figure instanceof Polygon;
-  }
-
-  public figureType(figure: Figure): 'circle' | 'square' | 'triangle' {
-    if (figure instanceof Square)
-      return 'square';
-    if (figure instanceof Circle)
-      return 'circle';
-    if (figure instanceof Triangle)
-      return 'triangle';
-
-    throw Error('idk');
   }
 
   private collide(figure0: Figure, figure1: Figure): void {
