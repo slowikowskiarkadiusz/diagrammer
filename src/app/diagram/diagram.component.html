@@ -45,7 +45,9 @@
            [style.top]="(figure.animatedCenter.y - asCircle(figure).radius) + 'px'"
            [style.width]="asCircle(figure).radius * 2 + 'px'"
            [style.height]="asCircle(figure).radius * 2 + 'px'">
-        <span class="node-text">{{figure.label ?? 'Magaya Service (BIC)'}}</span>
+        <div style="width: 75%; height: 75%; margin: auto;text-align: center;">
+          <span class="node-text">{{figure.label ?? 'Magaya Service (BIC)'}}</span>
+        </div>
       </div>
     </ng-container>
   </div>
