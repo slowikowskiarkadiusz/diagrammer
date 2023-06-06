@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { DiagramComponent } from './diagram/diagram.component';
-import { AutoResizeTextDirective } from './auto-resize-text.directive';
+import { AutoResizeTextDirective } from "./diagram/auto-resize-text.directive";
 
 @NgModule({
   declarations: [
@@ -17,4 +17,5 @@ import { AutoResizeTextDirective } from './auto-resize-text.directive';
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

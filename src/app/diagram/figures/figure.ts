@@ -1,6 +1,6 @@
 import { v2d } from "../v2d";
 import { LineOrigin, LineSetup } from "./line";
-import { AutoResizeTextDirective } from "../../auto-resize-text.directive";
+import { AutoResizeTextDirective } from "../auto-resize-text.directive";
 
 export interface FigureOptions {
   fillColor: string;

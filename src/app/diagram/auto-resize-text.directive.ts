@@ -1,5 +1,5 @@
 import { AfterViewInit, Directive, Input, ViewContainerRef } from '@angular/core';
-import { Figure } from "./diagram/figures/figure";
+import { Figure } from "./figures/figure";
 
 @Directive({
   selector: '[autoResizeText]'
