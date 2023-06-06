@@ -1,12 +1,12 @@
-import { Figure } from "./figure";
+import { Figure, FigureOptions } from "./figure";
 import { v2d } from "../v2d";
 
 export class Point extends Figure {
   private _center!: v2d;
   public animated_center!: v2d;
 
-  public constructor(label: string, center: v2d) {
-    super(label);
+  public constructor(label: string, center: v2d, opt: FigureOptions) {
+    super(label, opt);
 
     this._center = center.copy();
     this.animated_center = center.copy();
@@ -46,6 +46,10 @@ export class Point extends Figure {
 
   public get animatedCenter(): v2d {
     return this.animated_center;
+  }
+
+  protected update(): boolean {
+    return false;
   }
 
   public moveBy(by: v2d): void {

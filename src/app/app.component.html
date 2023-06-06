@@ -1,5 +1,5 @@
 <div style="height: 100vh;">
-  <app-diagram>
-
+  <app-diagram [figures]="figures"
+  (onFigureClicked)="onFigureClicked($event)">
   </app-diagram>
 </div>

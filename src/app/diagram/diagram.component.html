@@ -7,54 +7,42 @@
        height="100%"
        style="position: absolute;">
     <ng-container *ngFor="let line of lines">
-      <path [attr.d]="line.animatedSvgPath"
-            stroke-width="2"
-            fill="transparent"
-            stroke="white">
+      <path [attr.d]="line.svgPath"
+            [attr.stroke-width]="line.width"
+            [attr.stroke]="line.color"
+            fill="transparent">
       </path>
-<!--      <circle r="5"-->
-<!--              [attr.cx]="line.origin!().x"-->
-<!--              [attr.cy]="line.origin!().y"-->
-<!--              stroke="red"-->
-<!--              fill="red"-->
-<!--              stroke-width="1"-->
-<!--              class="svg-node">-->
-<!--      </circle>-->
-<!--      <circle r="5"-->
-<!--              [attr.cx]="line.destination!().x"-->
-<!--              [attr.cy]="line.destination!().y"-->
-<!--              stroke="pink"-->
-<!--              fill="pink"-->
-<!--              stroke-width="1"-->
-<!--              class="svg-node">-->
-<!--      </circle>-->
     </ng-container>
     <ng-container *ngFor="let figure of figures">
       <circle *ngIf="isCircle(figure)"
-              (mousedown)="onMouseDown($event, figure)"
-              [attr.r]="asCircle(figure).radius"
+              [attr.r]="asCircle(figure).animatedRadius"
               [attr.cx]="figure.animatedCenter.x"
               [attr.cy]="figure.animatedCenter.y"
-              [attr.stroke]="figure.isFixed ? 'blue' : 'green'"
-              [attr.fill]="figure.isFixed ? 'blue' : 'green'"
-              stroke-width="3"
+              [attr.stroke]="figure.strokeColor ?? 'transparent'"
+              [attr.fill]="figure.fillColor ?? 'transparent'"
+              [attr.stroke-width]="figure.strokeWidth ?? 'transparent'"
+              (mousedown)="onMouseDown($event, figure)"
+              (click)="onFigureClick($event, figure)"
               class="svg-node">
       </circle>
       <circle *ngIf="isPoint(figure)"
               r="5"
               [attr.cx]="figure.animatedCenter.x"
               [attr.cy]="figure.animatedCenter.y"
-              [attr.stroke]="figure.isFixed ? 'blue' : 'red'"
-              [attr.fill]="figure.isFixed ? 'blue' : 'red'"
-              stroke-width="1"
+              [attr.stroke]="figure.strokeColor ?? 'transparent'"
+              [attr.fill]="figure.fillColor ?? 'transparent'"
+              [attr.stroke-width]="figure.strokeWidth ?? 'transparent'"
+              (mousedown)="onMouseDown($event, figure)"
+              (click)="onFigureClick($event, figure)"
               class="svg-node">
       </circle>
       <polygon *ngIf="isPolygon(figure)"
-               (mousedown)="onMouseDown($event, figure)"
                [attr.points]="asPolygon(figure).animatedSvgPoints"
-               [attr.stroke]="figure.isFixed ? 'blue' : 'green'"
-               fill="transparent"
-               stroke-width="3"
+               [attr.stroke]="figure.strokeColor ?? 'transparent'"
+               [attr.fill]="figure.fillColor ?? 'transparent'"
+               [attr.stroke-width]="figure.strokeWidth ?? 'transparent'"
+               (mousedown)="onMouseDown($event, figure)"
+               (click)="onFigureClick($event, figure)"
                class="svg-node">
       </polygon>
     </ng-container>
@@ -64,12 +52,14 @@
     <ng-container *ngFor="let figure of figures">
       <div *ngIf="isCircle(figure)"
            class="html-node"
-           [style.left]="(figure.animatedCenter.x - asCircle(figure).radius) + 'px'"
-           [style.top]="(figure.animatedCenter.y - asCircle(figure).radius) + 'px'"
-           [style.width]="asCircle(figure).radius * 2 + 'px'"
-           [style.height]="asCircle(figure).radius * 2 + 'px'">
+           [style.left]="(figure.animatedCenter.x - asCircle(figure).animatedRadius) + 'px'"
+           [style.top]="(figure.animatedCenter.y - asCircle(figure).animatedRadius) + 'px'"
+           [style.width]="asCircle(figure).animatedRadius * 2 + 'px'"
+           [style.height]="asCircle(figure).animatedRadius * 2 + 'px'">
         <div style="width: 70%; height: 70%; margin: auto;text-align: center; display: flex;">
-          <span appFigureWithLabel
+          <span autoResizeText
+                [maxFontSize]="maxFontSize"
+                [figure]="figure"
                 class="node-text m-auto">{{figure.label}}</span>
         </div>
       </div>

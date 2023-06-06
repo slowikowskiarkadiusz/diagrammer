@@ -1,13 +1,14 @@
-import { Figure } from "./figure";
+import { Figure, FigureOptions } from "./figure";
 import { v2d } from "../v2d";
 
 export class Circle extends Figure {
   private _center!: v2d;
   public animated_center!: v2d;
   public radius: number = 0;
+  public animatedRadius: number = 0;
 
-  public constructor(label: string, center: v2d, radius: number) {
-    super(label);
+  public constructor(label: string, center: v2d, radius: number, opt: FigureOptions) {
+    super(label, opt);
 
     this._center = center.copy();
     this.animated_center = center.copy();
@@ -25,12 +26,12 @@ export class Circle extends Figure {
   }
 
   protected get animatedMinBounds(): v2d {
-    let min: v2d = new v2d(this.animated_center.x - this.radius, this.animated_center.y - this.radius);
+    let min: v2d = new v2d(this.animated_center.x - this.animatedRadius, this.animated_center.y - this.animatedRadius);
     return min;
   }
 
   protected get animatedMaxBounds(): v2d {
-    let max: v2d = new v2d(this.animated_center.x + this.radius, this.animated_center.y + this.radius);
+    let max: v2d = new v2d(this.animated_center.x + this.animatedRadius, this.animated_center.y + this.animatedRadius);
     return max;
   }
 
@@ -48,6 +49,14 @@ export class Circle extends Figure {
 
   public get animatedCenter(): v2d {
     return this.animated_center;
+  }
+
+  protected update(): boolean {
+    let previousAnimatedRadius = this.animatedRadius;
+
+    this.animatedRadius += (this.radius - this.animatedRadius) / 10;
+
+    return Math.abs(previousAnimatedRadius - this.animatedRadius) > 0.3;
   }
 
   public moveBy(by: v2d): void {

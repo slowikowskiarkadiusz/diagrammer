@@ -1,16 +1,35 @@
 import { v2d } from "../v2d";
-import { Line } from "./line";
-import { min } from "rxjs";
+import { LineOrigin, LineSetup } from "./line";
+import { AutoResizeTextDirective } from "../../auto-resize-text.directive";
+
+export interface FigureOptions {
+  fillColor: string;
+  strokeColor?: string;
+  strokeWidth?: number;
+  isFixed?: boolean;
+  isDraggable?: boolean;
+}
 
 export abstract class Figure {
   public label!: string;
   public isFixed!: boolean;
-  public isDisabled!: boolean;
+  public fillColor: string;
+  public strokeColor?: string;
+  public strokeWidth?: number;
+  public isDragged!: boolean;
+  public isDraggable: boolean = false;
+  public lineSetups: LineSetup[] = [];
+  public autoResizeTextDirective?: AutoResizeTextDirective;
 
   protected boardSize?: v2d;
 
-  protected constructor(label: string) {
+  protected constructor(label: string, opt: FigureOptions) {
     this.label = label;
+    this.fillColor = opt?.fillColor;
+    this.strokeColor = opt.strokeColor;
+    this.strokeWidth = opt.strokeWidth;
+    this.isFixed = opt?.isFixed == true;
+    this.isDraggable = opt?.isDraggable == true;
   }
 
   public abstract get center(): v2d;
@@ -25,12 +44,17 @@ export abstract class Figure {
 
   public abstract moveTo(to: v2d): void;
 
-  public updatePosition(): void {
+  public updateLoop(): void {
     this.animatedVertices.forEach((av, i) => {
       av.x += (this.vertices[i].x - av.x) / 20;
       av.y += (this.vertices[i].y - av.y) / 20;
     });
+
+    if (this.update())
+      this.autoResizeTextDirective?.update();
   }
+
+  protected abstract update(): boolean;
 
   protected abstract get minBounds(): v2d;
 
@@ -41,30 +65,26 @@ export abstract class Figure {
   protected abstract get animatedMaxBounds(): v2d;
 
   public get topLineOrigin(): v2d {
-    let min = this.minBounds;
     let max = this.maxBounds;
-    let result = new v2d((min.x + max.x) / 2, max.y);
+    let result = new v2d(this.animatedCenter.x, max.y);
     return result;
   }
 
   public get bottomLineOrigin(): v2d {
     let min = this.minBounds;
-    let max = this.maxBounds;
-    let result = new v2d((min.x + max.x) / 2, max.y);
+    let result = new v2d(this.animatedCenter.x, min.y);
     return result;
   }
 
   public get leftLineOrigin(): v2d {
     let min = this.minBounds;
-    let max = this.maxBounds;
-    let result = new v2d(min.x, (min.y + max.y) / 2);
+    let result = new v2d(min.x, this.animatedCenter.y);
     return result;
   }
 
   public get rightLineOrigin(): v2d {
-    let min = this.minBounds;
     let max = this.maxBounds;
-    let result = new v2d(max.x, (min.y + max.y) / 2);
+    let result = new v2d(max.x, this.animatedCenter.y);
     return result;
   }
 
@@ -78,13 +98,13 @@ export abstract class Figure {
     return result;
   }
 
-  public get animatedTopLineOrigin(): v2d {
+  public get animatedBottomLineOrigin(): v2d {
     let max = this.animatedMaxBounds;
     let result = new v2d(this.animatedCenter.x, max.y);
     return result;
   }
 
-  public get animatedBottomLineOrigin(): v2d {
+  public get animatedTopLineOrigin(): v2d {
     let min = this.animatedMinBounds;
     let result = new v2d(this.animatedCenter.x, min.y);
     return result;
@@ -104,37 +124,37 @@ export abstract class Figure {
 
   public get animatedLinesOrigins(): v2d[] {
     let result = [
-      this.animatedTopLineOrigin,
       this.animatedBottomLineOrigin,
+      this.animatedTopLineOrigin,
       this.animatedLeftLineOrigin,
       this.animatedRightLineOrigin,
     ];
     return result;
   }
 
-  public lineTo(figure: Figure): Line {
-    let myLinesOrigins = this.animatedLinesOrigins;
-    let otherLinesOrigins = figure.animatedLinesOrigins;
-
-    let minDistance = { distance: Infinity, myIndex: 0, otherIndex: 0 };
-    for (let i = 0; i < myLinesOrigins.length; i++) {
-      const my = myLinesOrigins[i];
-      for (let ii = 0; ii < otherLinesOrigins.length; ii++) {
-        const other = otherLinesOrigins[ii];
-        let distance = v2d.distance(my, other);
-
-        if (distance < minDistance.distance)
-          minDistance = { distance, myIndex: i, otherIndex: ii };
-      }
-    }
-
-    let result = new Line(() => this.animatedLinesOrigins[minDistance.myIndex], () => figure.animatedLinesOrigins[minDistance.otherIndex]);
-    return result;
+  public addLine(setup: LineSetup): void {
+    this.lineSetups.push(setup);
+    this.lineSetups.filter((v, i, c) => c.indexOf(v) === i);
   }
 
   public setBoardSize(newBoardSize: v2d): Figure {
     this.boardSize = newBoardSize;
 
     return this;
+  }
+
+  public getAnimatedLineOrigin(fromOrigin: LineOrigin | undefined): v2d | undefined {
+    if (!fromOrigin) return undefined;
+
+    switch (fromOrigin) {
+      case 'bottom':
+        return this.animatedBottomLineOrigin;
+      case 'top':
+        return this.animatedTopLineOrigin;
+      case 'left':
+        return this.animatedLeftLineOrigin;
+      case 'right':
+        return this.animatedRightLineOrigin;
+    }
   }
 }

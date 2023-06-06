@@ -1,4 +1,4 @@
-import { Figure } from "./figure";
+import { Figure, FigureOptions } from "./figure";
 import { v2d } from "../v2d";
 import { Circle } from "./circle";
 
@@ -6,8 +6,8 @@ export class Polygon extends Figure {
   public vs!: v2d[];
   public animatedVs!: v2d[];
 
-  public constructor(label: string, ...vertices: v2d[]) {
-    super(label);
+  public constructor(label: string, vertices: v2d[], opt: FigureOptions) {
+    super(label, opt);
 
     this.vs = vertices.map(x => x.copy());
     this.animatedVs = vertices.map(x => x.copy());
@@ -75,6 +75,10 @@ export class Polygon extends Figure {
   public get animatedSvgPoints(): string {
     let result = this.animatedVertices.map(v => `${ v.x },${ v.y }`).join(' ');
     return result;
+  }
+
+  protected update(): boolean {
+    return false;
   }
 
   public isPointInside(point: v2d): boolean {
