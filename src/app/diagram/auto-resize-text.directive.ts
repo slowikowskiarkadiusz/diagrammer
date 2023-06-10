@@ -2,36 +2,52 @@ import { AfterViewInit, Directive, Input, ViewContainerRef } from '@angular/core
 import { Figure } from "./figures/figure";
 
 @Directive({
-  selector: '[autoResizeText]'
+    selector: '[autoResizeText]'
 })
 export class AutoResizeTextDirective implements AfterViewInit {
-  @Input() public maxFontSize: number = 16;
-  @Input() public figure?: Figure;
+    @Input() public maxFontSize: number = 16;
+    @Input() public figure?: Figure;
 
-  constructor(private viewContainerRef: ViewContainerRef) {
-  }
+    private originalFontSize: number = 16;
+    private _nativeElement?: HTMLElement;
+    private fontSize: number = 16;
+    private animatedFontSize: number = 1;
 
-  public ngAfterViewInit(): void {
-    this.update();
-
-    if (this.figure)
-      this.figure.autoResizeTextDirective = this;
-  }
-
-  public update(): void {
-    let native = this.viewContainerRef.element.nativeElement as HTMLElement;
-
-    let fontSize = parseInt(window.getComputedStyle(native).fontSize.replace('px', ''));
-
-    while (native.offsetHeight < native.parentElement!.offsetHeight || native.offsetWidth < native.parentElement!.offsetWidth) {
-      native.style.fontSize = (fontSize += 0.5) + 'px';
+    private get nativeElement(): HTMLElement {
+        return this._nativeElement ??= this.viewContainerRef.element.nativeElement as HTMLElement;
     }
 
-    while (native.offsetHeight > native.parentElement!.offsetHeight || native.offsetWidth > native.parentElement!.offsetWidth) {
-      native.style.fontSize = (fontSize -= 0.5) + 'px';
+    constructor(private viewContainerRef: ViewContainerRef) {
     }
 
-    if (fontSize > this.maxFontSize)
-      native.style.fontSize = this.maxFontSize + 'px';
-  }
+    public ngAfterViewInit(): void {
+        this.originalFontSize = parseInt(window.getComputedStyle(this.nativeElement).fontSize.replace('px', ''));
+        if (this.figure)
+            this.figure.autoResizeTextDirective = this;
+    }
+
+    public update(): void {
+        this.resize();
+    }
+
+    private resize(): void {
+        let lineHeight = parseInt(window.getComputedStyle(this.nativeElement).lineHeight.replace('px', ''));
+        if (isNaN(lineHeight))
+            lineHeight = 1;
+        let height = this.nativeElement.offsetHeight;
+
+        let lines = height / lineHeight;
+        const maxLines = 3;
+        lines = lines < maxLines ? maxLines : lines;
+        this.fontSize = ((maxLines / lines) * this.originalFontSize);
+
+        let difference = this.fontSize - this.animatedFontSize;
+        if (difference < 0.1) return;
+        this.animatedFontSize = this.fontSize;
+
+        // this.animatedFontSize += (this.fontSize - this.animatedFontSize) / 20;
+
+        this.figure!.fontSize = this.animatedFontSize + 'px';
+        this.figure!.lineHeight = this.animatedFontSize + 'px';
+    }
 }
