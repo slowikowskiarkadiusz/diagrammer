@@ -44,7 +44,7 @@ export class Point extends Figure {
         return this.animated_center;
     }
 
-    protected update(): boolean {
+    protected update(areChanges: boolean): boolean {
         return false;
     }
 

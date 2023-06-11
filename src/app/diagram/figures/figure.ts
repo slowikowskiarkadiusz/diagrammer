@@ -1,8 +1,7 @@
 import { v2d } from "../v2d";
 import { Line, LineOrigin, LineSetup } from "./line";
 import { AutoResizeTextDirective } from "../auto-resize-text.directive";
-import { processLabel } from "../../utils/label-utils";
-import { qf_x } from "../../utils/math-utils";
+import { processLabel } from "../../utils";
 
 export interface FigureOptions {
     fillColor: string;
@@ -17,6 +16,8 @@ export interface FigureOptions {
 }
 
 export abstract class Figure {
+    private static _id: number = 0;
+    public id: string;
     public label!: string;
     public originalLabel!: string;
     public isFixed!: boolean;
@@ -38,6 +39,7 @@ export abstract class Figure {
     private _lines: { line: Line, setup: LineSetup }[] = [];
 
     protected constructor(label: string, opt: FigureOptions) {
+        this.id = (Figure._id++).toString();
         this.label = processLabel(label);
         this.originalLabel = label;
         this.fillColor = opt?.fillColor;
@@ -59,7 +61,7 @@ export abstract class Figure {
 
     protected abstract get animatedVertices(): v2d[];
 
-    protected abstract update(): boolean;
+    protected abstract update(areChanges: boolean): boolean;
 
     protected abstract get minBounds(): v2d;
 
@@ -170,12 +172,12 @@ export abstract class Figure {
             av.x += moveByX < differenceX ? moveByX : differenceX;
             av.y += moveByY < differenceY ? moveByY : differenceY;
 
-            if (differenceY > 0.1 || differenceX > 0.1)
+            if (differenceY > 0 || differenceX > 0)
                 areChanges = true;
         });
 
-        this.update();
-        this.autoResizeTextDirective?.update();
+        this.update(areChanges);
+        // this.autoResizeTextDirective?.update();
 
         this._lines.forEach(x => x.line = Line.pathFromSetup(x.setup));
     }
@@ -206,3 +208,4 @@ export abstract class Figure {
         }
     }
 }
+

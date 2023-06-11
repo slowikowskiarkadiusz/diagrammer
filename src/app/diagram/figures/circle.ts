@@ -1,14 +1,24 @@
 import { Figure, FigureOptions } from "./figure";
 import { v2d } from "../v2d";
+import { proportion } from "../../utils";
 
 export class Circle extends Figure {
     private _center!: v2d;
     public animated_center!: v2d;
     public radius: number = 0;
     public animatedRadius: number = 0;
+    public textPathLabel: { text: string, path: string, size: number, offset: number }[] = [];
 
     public constructor(label: string, center: v2d, radius: number, opt: FigureOptions) {
         super(label, opt);
+        this.textPathLabel = new Array(this.label.split('\n').length).fill(0).map(x => {
+            return {
+                text: '',
+                path: '',
+                size: 0,
+                offset: 0,
+            }
+        });
 
         this._center = center.copy();
         this.animated_center = center.copy();
@@ -59,13 +69,42 @@ export class Circle extends Figure {
         return new v2d(this.animatedRadius, this.animatedRadius);
     }
 
-    protected update(): boolean {
+    protected update(areChanges: boolean): boolean {
         let previousAnimatedRadius = this.animatedRadius;
         let difference = (this.radius - this.animatedRadius) / 10;
         let moveBy = difference;
         this.animatedRadius += moveBy < difference ? moveBy : difference;
         let result = Math.abs(previousAnimatedRadius - this.animatedRadius) > 0.1;
+
+        this.updateTextPathLabel();
+
         return result;
+    }
+
+    private updateTextPathLabel(): void {
+        let squareSide = Math.sqrt(2) * this.animatedRadius / 2;
+
+        this.label
+            .split('\n')
+            .forEach((line, i, c) => {
+                let squareVertices: v2d[] = [];
+                let v0 = this.animatedCenter.add(new v2d(-1, proportion(-1, 1, (i + 1) / (c.length + 0.5))).multiply(squareSide))
+                let v1 = this.animatedCenter.add(new v2d(1, proportion(-1, 1, (i + 1) / (c.length + 0.5))).multiply(squareSide))
+                squareVertices.push(v0);
+                squareVertices.push(v1);
+
+                let length = v2d.distance(v0, v1);
+
+                this.textPathLabel[i].text = line;
+                this.textPathLabel[i].path = `M${ squareVertices[0].x } ${ squareVertices[0].y } L${ squareVertices[0 + 1].x } ${ squareVertices[0 + 1].y }`;
+                this.textPathLabel[i].size = (length / line.length);
+                this.textPathLabel[i].offset = 0;
+            });
+
+        let minSize = this.textPathLabel.reduce((p, c) => p.size < c.size ? p : c).size + 4;
+
+        this.textPathLabel
+            .forEach(x => x.size = minSize);
     }
 
     public doesCircleIntersect(circle1: Circle): boolean {
@@ -84,19 +123,19 @@ export class Circle extends Figure {
     public moveTo(to: v2d): void {
         this._center = to;
 
-        if (to.x < this.radius)
-            this._center.x = this.radius;
-        else if (this.boardSize && to.x > this.boardSize.x - this.radius)
-            this._center.x = this.boardSize.x - this.radius;
-        else
-            this._center.x = to.x;
-
-        if (to.y < this.radius)
-            this._center.y = this.radius;
-        else if (this.boardSize && to.y > this.boardSize.y - this.radius)
-            this._center.y = this.boardSize.y - this.radius;
-        else
-            this._center.y = to.y;
+        // if (to.x < this.radius)
+        //     this._center.x = this.radius;
+        // else if (this.boardSize && to.x > this.boardSize.x - this.radius)
+        //     this._center.x = this.boardSize.x - this.radius;
+        // else
+        //     this._center.x = to.x;
+        //
+        // if (to.y < this.radius)
+        //     this._center.y = this.radius;
+        // else if (this.boardSize && to.y > this.boardSize.y - this.radius)
+        //     this._center.y = this.boardSize.y - this.radius;
+        // else
+        //     this._center.y = to.y;
     }
 
     public instantMoveTo(to: v2d): void {

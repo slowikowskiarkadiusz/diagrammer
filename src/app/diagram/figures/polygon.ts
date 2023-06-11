@@ -93,7 +93,7 @@ export class Polygon extends Figure {
         return result;
     }
 
-    protected update(): boolean {
+    protected update(areChanges: boolean): boolean {
         return false;
     }
 

@@ -2,9 +2,11 @@
      [style.height]="height + 'px'"
      (wheel)="onScroll($event)"
      (mouseup)="onMouseUp($event)"
-     (mousemove)="onMouseMove($event)">
+     (mousemove)="onMouseMove($event)"
+     (mousedown)="onMouseDown($event, undefined)">
     <!--         [attr.viewBox]="'0 0 300 300'"-->
     <svg #svg
+         [attr.viewBox]="printViewBox()"
          width="100%"
          height="100%"
          style="position: absolute;">
@@ -48,15 +50,18 @@
                      (click)="onFigureClick($event, figure)"
                      class="svg-node">
             </polygon>
-            <path
-                [attr.id]="figure.label"
-                fill="none"
-                [attr.d]="'M' + figure.animatedCenter.x + ' ' + figure.animatedCenter.y"/>
-            <!-- </defs> -->
+            <ng-container *ngFor="let item of asCircle(figure).textPathLabel;let index = index">
+                <path [attr.id]="figure.id + index"
+                      fill="none"
+                      [attr.d]="item.path"/>
 
-            <text>
-                <textPath [attr.href]="'#' + figure.label">Quick brown fox jumps over the lazy dog.</textPath>
-            </text>
+                <text [attr.font-size]="item.size"
+                      style="user-select: none; pointer-events: none; font-weight: bold;">
+                    <textPath text-anchor="middle"
+                              startOffset="50%"
+                              [attr.href]="'#' + figure.id + index">{{item.text}}</textPath>
+                </text>
+            </ng-container>
         </ng-container>
     </svg>
 
@@ -66,24 +71,4 @@
         <p class="my-0">shift + scroll to zoom</p>
     </div>
 
-    <div class="overlay">
-        <ng-container *ngFor="let figure of figures">
-            <div *ngIf="isCircle(figure)"
-                 class="html-node"
-                 [style.left]="(figure.animatedCenter.x - asCircle(figure).animatedRadius) + 'px'"
-                 [style.top]="(figure.animatedCenter.y - asCircle(figure).animatedRadius) + 'px'"
-                 [style.width]="asCircle(figure).animatedRadius * 2 + 'px'"
-                 [style.height]="asCircle(figure).animatedRadius * 2 + 'px'">
-                <div style="width: 70%; height: 70%; margin: auto;text-align: center; display: flex;">
-                  <span autoResizeText
-                        [maxFontSize]="maxFontSize"
-                        [figure]="figure"
-                        [style.font-size]="figure.fontSize"
-                        [style.line-height]="figure.lineHeight"
-                        [class.one-line]="figure.forceOneLineLabel"
-                        class="node-text m-auto">{{figure.label}}</span>
-                </div>
-            </div>
-        </ng-container>
-    </div>
 </div>

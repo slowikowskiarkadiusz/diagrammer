@@ -20,10 +20,20 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     @ViewChild('svg') public svg?: ElementRef<HTMLElement>;
 
-    private mousePosition: v2d = new v2d(0, 0);
+    private svgMousePosition: v2d = new v2d(0, 0);
+    // private mousePosition: v2d = new v2d(0, 0);
     private draggedNode?: Figure;
-    private draggingNodeInterpolation?: number;
-    private beingPressedTimeout?: number;
+    // private previousMousePosition: v2d = new v2d(0, 0);
+    private svgPoint?: DOMPoint;
+    private isMouseDown: boolean = false;
+
+    public viewBox: { minX: number, minY: number, width: number, height: number } = { minX: 0, minY: 0, width: 1000, height: 1000 };
+    private mouseStartPosition: v2d = new v2d(0, 0);
+    private viewboxStartPosition: v2d = new v2d(0, 0);
+    private mousePosition: v2d = new v2d(0, 0);
+    private viewboxPosition: v2d = new v2d(0, 0);
+    private viewboxSize: v2d = new v2d(0, 0);
+    private viewboxScale: number = 0;
 
     constructor() {
     }
@@ -35,7 +45,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     private get boardSize(): v2d {
-        let result = new v2d(this.svg?.nativeElement.clientWidth ?? 0, this.svg?.nativeElement.clientHeight ?? 0);
+        // let result = new v2d(this.svg?.nativeElement.clientWidth ?? 0, this.svg?.nativeElement.clientHeight ?? 0);
+        let result = new v2d(this.viewBox?.width ?? 0, this.viewBox?.height ?? 0);
         return result;
     }
 
@@ -48,6 +59,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     public ngAfterViewInit(): void {
+        this.svgPoint = (this.svg!.nativeElement as any).createSVGPoint();
         setInterval(() => {
             for (let i = 0; i < this.figures.length; i++) {
                 const figure0 = this.figures[i];
@@ -110,32 +122,75 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
         differenceMagnitude.x /= max;
         differenceMagnitude.y /= max;
 
-        this.moveFigureBy(figure0, differenceMagnitude);
-        this.moveFigureBy(figure1, differenceMagnitude.multiply(-1));
+        figure0.moveBy(differenceMagnitude);
+        figure1.moveBy(differenceMagnitude.multiply(-1));
     }
 
     public onScroll($event: WheelEvent) {
+        var scale = ($event.deltaY < 0) ? 0.8 : 1.2;
+
+        if ((this.viewboxScale * scale < 8.) && (this.viewboxScale * scale > 1. / 256.)) {
+            let mpos = new v2d(this.mousePosition.x * this.viewboxScale, this.mousePosition.y * this.viewboxScale);
+            let vpos = new v2d(this.viewboxPosition.x, this.viewboxPosition.y);
+            let cpos = new v2d(mpos.x + vpos.x, mpos.y + vpos.y);
+
+            this.viewboxPosition.x = (this.viewboxPosition.x - cpos.x) * scale + cpos.x;
+            this.viewboxPosition.y = (this.viewboxPosition.y - cpos.y) * scale + cpos.y;
+            this.viewboxScale *= scale;
+
+            this.setViewbox();
+        }
+        // if ($event.shiftKey) {
+        //     let diff = $event.deltaY;
+        //
+        //     if (this.viewBox.width - diff > 0)
+        //         this.viewBox.width -= diff;
+        //     if (this.viewBox.height - diff > 0)
+        //         this.viewBox.height -= diff;
+        // }
+        // $event.stopImmediatePropagation();
+        // $event.stopPropagation();
+    }
+
+    public onMouseDown($event: MouseEvent, figure?: Figure) {
+        this.isMouseDown = true;
+
         if ($event.shiftKey) {
-            console.log($event.deltaY);
+            if (figure && figure.isDraggable) {
+                this.draggedNode = figure;
+                this.draggedNode.isDragged = true;
+            }
+            // if (this.draggingNodeInterpolation) clearInterval(this.draggingNodeInterpolation);
+            // this.draggingNodeInterpolation = setInterval(() => {
+            //     if (figure && figure.isDraggable)
+            //         this.moveFigureTo(figure, this.svgMousePosition);
+            //     else {
+            //         let diff = this.mousePosition.subtract(this.previousMousePosition);
+            //         if (!isNaN(diff.x))
+            //             this.viewBox.minX -= diff.x;
+            //         if (!isNaN(diff.y))
+            //             this.viewBox.minY -= diff.y;
+            //     }
+            // }, 0);
+
             $event.stopImmediatePropagation();
         }
     }
 
-    public onMouseDown($event: MouseEvent, figure: Figure) {
-        if ($event.shiftKey)
-            if (figure.isDraggable) {
-                this.draggedNode = figure;
-                this.draggedNode.isDragged = true;
-                this.draggingNodeInterpolation = setInterval(() => {
-                    this.moveFigureTo(figure, this.mousePosition);
-                }, 0);
-            }
+    private setViewbox() {
+        this.viewBox = {
+            minX: this.viewboxPosition.x,
+            minY: this.viewboxPosition.y,
+            width: this.viewboxSize.x * this.viewboxScale,
+            height: this.viewboxSize.y * this.viewboxScale,
+        };
     }
 
     public onMouseUp($event: MouseEvent) {
-        clearInterval(this.draggingNodeInterpolation);
-        clearTimeout(this.beingPressedTimeout);
+        this.mouseStartPosition = new v2d($event.pageX, $event.pageY);
+        this.viewboxStartPosition = new v2d($event.pageX, $event.pageY);
 
+        this.isMouseDown = false;
         setTimeout(() => {
             if (this.draggedNode) {
                 this.draggedNode.isDragged = false;
@@ -145,10 +200,25 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     public onMouseMove($event: MouseEvent) {
-        let rect = this.svg!.nativeElement.getBoundingClientRect();
-        let x = $event.clientX - rect.left;
-        let y = $event.clientY - rect.top;
-        this.mousePosition = new v2d(x, y);
+        this.mousePosition = new v2d($event.offsetX, $event.offsetY);
+
+        if (this.isMouseDown) {
+            if (this.draggedNode && this.draggedNode.isDraggable) {
+                this.svgPoint!.x = $event.clientX;
+                this.svgPoint!.y = $event.clientY;
+                let transformed = this.svgPoint!.matrixTransform((this.svg!.nativeElement as any).getScreenCTM().inverse());
+                this.svgMousePosition = new v2d(transformed.x, transformed.y);
+
+                this.draggedNode.moveTo(this.svgMousePosition);
+            } else {
+                this.viewboxPosition = new v2d(
+                    this.viewboxStartPosition.x + (this.mouseStartPosition.x - $event.pageX) * this.viewboxScale,
+                    this.viewboxStartPosition.y + (this.mouseStartPosition.y - $event.pageY) * this.viewboxScale,
+                );
+
+                this.setViewbox();
+            }
+        }
     }
 
     public onFigureClick($event: MouseEvent, figure: Figure) {
@@ -156,13 +226,8 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
             this.onFigureClicked.emit(figure);
     }
 
-    private moveFigureBy(figure: Figure, by: v2d): void {
-        figure.moveBy(by);
-        // figure.updateLines();
-    }
-
-    private moveFigureTo(figure: Figure, to: v2d): void {
-        figure.moveTo(to);
-        // figure.updateLines();
+    public printViewBox(): string {
+        let result = `${ this.viewBox.minX } ${ this.viewBox.minY } ${ this.viewBox.width } ${ this.viewBox.height }`;
+        return result;
     }
 }
