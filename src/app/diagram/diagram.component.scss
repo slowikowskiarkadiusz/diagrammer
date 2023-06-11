@@ -13,6 +13,10 @@
     pointer-events: none;
 }
 
+.active-pointer-events {
+    pointer-events: all;
+}
+
 .html-node {
     user-select: none;
     pointer-events: none;

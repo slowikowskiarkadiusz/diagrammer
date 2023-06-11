@@ -31,6 +31,17 @@ function isLetterAndCase(letter: string, isLower: boolean): boolean {
     return !!letter && !!letter.match(/[a-z]/i) && letter === (isLower ? letter.toLowerCase() : letter.toUpperCase());
 }
 
-export function proportion(min: number, max: number, percent: number): number {
-    return min * (1 - percent) + (max * percent);
+export function proportion(min: number, max: number, percent: number, clamp: boolean = false): number {
+    let result = min * (1 - percent) + (max * percent);
+
+    if (clamp) {
+        let smaller = [min, max].reduce((p, c) => p < c ? p : c);
+        let bigger = [min, max].reduce((p, c) => p > c ? p : c);
+
+        if (result < smaller)
+            return smaller;
+        if (result > bigger)
+            return bigger;
+    }
+    return result;
 }

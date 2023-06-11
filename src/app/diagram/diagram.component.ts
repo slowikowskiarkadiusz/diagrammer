@@ -26,6 +26,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     private svgPoint?: DOMPoint;
     private isMouseDown: boolean = false;
 
+    public defaultViewBox: { minX: number, minY: number, width: number, height: number } = { minX: 0, minY: 0, width: 1000, height: 1000 };
     public viewBox: { minX: number, minY: number, width: number, height: number } = { minX: 0, minY: 0, width: 1000, height: 1000 };
     private mouseStartPosition: v2d = new v2d(0, 0);
     private viewboxStartPosition: v2d = new v2d(0, 0);
@@ -127,13 +128,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     public onScroll($event: WheelEvent) {
         if ($event.shiftKey) {
-            // let prop = proportion(-1, 1, $event.deltaY);
-            let scale = ($event.deltaY < 0) ? 0.9 : 1.1;
-            // scale *= prop;
-
-            // console.log('this.viewboxScale ' + this.viewboxScale);
-            // console.log('scale ' + scale);
-            // console.log('this.viewboxScale * scale ' + (this.viewboxScale * scale));
+            let scale = ($event.deltaY < 0) ? proportion(0.9, 0.2, $event.deltaY / 100, true) : proportion(1.1, 2, $event.deltaY / 100, true);
 
             if ((this.viewboxScale * scale < 2) && (this.viewboxScale * scale > 0.1)) {
                 let mousePosition = new v2d(this.mousePosition.x * this.viewboxScale, this.mousePosition.y * this.viewboxScale);
@@ -215,12 +210,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     private setViewbox() {
-        // console.log('asbc', this.viewBox);
         this.viewBox = {
             minX: this.viewboxPosition.x,
             minY: this.viewboxPosition.y,
             width: this.viewboxSize.x * this.viewboxScale,
             height: this.viewboxSize.y * this.viewboxScale,
         };
+    }
+
+    public onCenterButtonClick() {
+        this.viewBox = { ...this.defaultViewBox };
     }
 }
