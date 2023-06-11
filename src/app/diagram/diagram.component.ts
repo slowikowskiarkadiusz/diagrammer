@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { v2d } from "./v2d";
 import { Figure } from "./figures/figure";
 import { Circle } from "./figures/circle";
@@ -22,12 +22,13 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     @ViewChild('svg') public svg?: ElementRef<HTMLElement>;
 
     private svgMousePosition: v2d = new v2d(0, 0);
-    private draggedNode?: Figure;
-    private svgPoint?: DOMPoint;
-    private isMouseDown: boolean = false;
+    public draggedNode?: Figure;
 
     public defaultViewBox: { minX: number, minY: number, width: number, height: number } = { minX: 0, minY: 0, width: 1000, height: 1000 };
     public viewBox: { minX: number, minY: number, width: number, height: number } = { minX: 0, minY: 0, width: 1000, height: 1000 };
+    public isShiftDown: boolean = false;
+    private svgPoint?: DOMPoint;
+    private isMouseDown: boolean = false;
     private mouseStartPosition: v2d = new v2d(0, 0);
     private viewboxStartPosition: v2d = new v2d(0, 0);
     private mousePosition: v2d = new v2d(0, 0);
@@ -37,6 +38,17 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     constructor() {
         this.setViewbox();
+    }
+
+    @HostListener('document:keydown.shift', ['$event'])
+    public onKeydownHandler($event: KeyboardEvent) {
+        this.isShiftDown = $event.key.toLowerCase() === 'shift';
+    }
+
+    @HostListener('document:keyup.shift', ['$event'])
+    public onKeyupHandler($event: KeyboardEvent) {
+        if ($event.key.toLowerCase() === 'shift')
+            this.isShiftDown = false;
     }
 
     public get lines(): Line[] {
@@ -200,8 +212,9 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     public onFigureClick($event: MouseEvent, figure: Figure) {
-        if (figure.isClickable && !figure.isDragged && !figure.isFixed)
-            this.onFigureClicked.emit(figure);
+        if (!$event.shiftKey)
+            if (figure.isClickable && !figure.isDragged && !figure.isFixed)
+                this.onFigureClicked.emit(figure);
     }
 
     public printViewBox(): string {
@@ -220,5 +233,13 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
 
     public onCenterButtonClick() {
         this.viewBox = { ...this.defaultViewBox };
+    }
+
+    public onKeyDown($event: KeyboardEvent) {
+    }
+
+    public onKeyUp($event: KeyboardEvent) {
+        if ($event.shiftKey)
+            this.isShiftDown = false;
     }
 }

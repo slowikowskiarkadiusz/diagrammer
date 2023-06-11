@@ -17,18 +17,21 @@
     pointer-events: all;
 }
 
-.html-node {
-    user-select: none;
-    pointer-events: none;
-    border-radius: 100%;
-    background-color: transparent;
-    position: absolute;
-    display: flex;
-}
-
 .svg-node {
     cursor: pointer;
     transition: fill 0.5s ease-out;
+}
+
+.svg-node-grab:hover {
+    cursor: grab !important;;
+}
+
+.svg-node-grabbing:hover {
+    cursor: grabbing !important;
+}
+
+.svg-movable {
+    cursor: move !important;
 }
 
 .svg-node:hover {

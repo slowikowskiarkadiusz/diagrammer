@@ -8,7 +8,8 @@
          [attr.viewBox]="printViewBox()"
          width="100%"
          height="100%"
-         style="position: absolute;">
+         style="position: absolute;"
+         [class.svg-movable]="isShiftDown">
         <ng-container *ngFor="let line of lines">
             <path [attr.d]="line.svgPath"
                   [attr.stroke-width]="line.width"
@@ -27,7 +28,9 @@
                     [style.--hoverFill]="figure.hoverFillColor"
                     (mousedown)="onMouseDown($event, figure)"
                     (click)="onFigureClick($event, figure)"
-                    class="svg-node">
+                    class="svg-node"
+                    [class.svg-node-grab]="isShiftDown"
+                    [class.svg-node-grabbing]="draggedNode == figure">
             </circle>
             <circle *ngIf="isPoint(figure)"
                     r="5"
@@ -38,7 +41,9 @@
                     [attr.stroke-width]="figure.strokeWidth ?? 'transparent'"
                     (mousedown)="onMouseDown($event, figure)"
                     (click)="onFigureClick($event, figure)"
-                    class="svg-node">
+                    class="svg-node"
+                    [class.svg-node-grab]="isShiftDown"
+                    [class.svg-node-grabbing]="draggedNode == figure">
             </circle>
             <polygon *ngIf="isPolygon(figure)"
                      [attr.points]="asPolygon(figure).animatedSvgPoints"
@@ -47,7 +52,9 @@
                      [attr.stroke-width]="figure.strokeWidth ?? 'transparent'"
                      (mousedown)="onMouseDown($event, figure)"
                      (click)="onFigureClick($event, figure)"
-                     class="svg-node">
+                     class="svg-node"
+                     [class.svg-node-grab]="isShiftDown"
+                     [class.svg-node-grabbing]="draggedNode == figure">
             </polygon>
             <ng-container *ngFor="let item of asCircle(figure).textPathLabel;let index = index">
                 <path [attr.id]="figure.id + index"
