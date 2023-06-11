@@ -5,6 +5,7 @@ import { Circle } from "./figures/circle";
 import { Polygon } from "./figures/polygon";
 import { Point } from "./figures/point";
 import { Line } from "./figures/line";
+import { proportion } from "../utils";
 
 @Component({
     selector: 'app-diagram',
@@ -21,9 +22,7 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     @ViewChild('svg') public svg?: ElementRef<HTMLElement>;
 
     private svgMousePosition: v2d = new v2d(0, 0);
-    // private mousePosition: v2d = new v2d(0, 0);
     private draggedNode?: Figure;
-    // private previousMousePosition: v2d = new v2d(0, 0);
     private svgPoint?: DOMPoint;
     private isMouseDown: boolean = false;
 
@@ -32,10 +31,11 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     private viewboxStartPosition: v2d = new v2d(0, 0);
     private mousePosition: v2d = new v2d(0, 0);
     private viewboxPosition: v2d = new v2d(0, 0);
-    private viewboxSize: v2d = new v2d(0, 0);
-    private viewboxScale: number = 0;
+    private viewboxSize: v2d = new v2d(1000, 1000);
+    private viewboxScale: number = 1;
 
     constructor() {
+        this.setViewbox();
     }
 
     public get lines(): Line[] {
@@ -45,7 +45,6 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     private get boardSize(): v2d {
-        // let result = new v2d(this.svg?.nativeElement.clientWidth ?? 0, this.svg?.nativeElement.clientHeight ?? 0);
         let result = new v2d(this.viewBox?.width ?? 0, this.viewBox?.height ?? 0);
         return result;
     }
@@ -127,68 +126,52 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     }
 
     public onScroll($event: WheelEvent) {
-        var scale = ($event.deltaY < 0) ? 0.8 : 1.2;
+        if ($event.shiftKey) {
+            // let prop = proportion(-1, 1, $event.deltaY);
+            let scale = ($event.deltaY < 0) ? 0.9 : 1.1;
+            // scale *= prop;
 
-        if ((this.viewboxScale * scale < 8.) && (this.viewboxScale * scale > 1. / 256.)) {
-            let mpos = new v2d(this.mousePosition.x * this.viewboxScale, this.mousePosition.y * this.viewboxScale);
-            let vpos = new v2d(this.viewboxPosition.x, this.viewboxPosition.y);
-            let cpos = new v2d(mpos.x + vpos.x, mpos.y + vpos.y);
+            // console.log('this.viewboxScale ' + this.viewboxScale);
+            // console.log('scale ' + scale);
+            // console.log('this.viewboxScale * scale ' + (this.viewboxScale * scale));
 
-            this.viewboxPosition.x = (this.viewboxPosition.x - cpos.x) * scale + cpos.x;
-            this.viewboxPosition.y = (this.viewboxPosition.y - cpos.y) * scale + cpos.y;
-            this.viewboxScale *= scale;
+            if ((this.viewboxScale * scale < 2) && (this.viewboxScale * scale > 0.1)) {
+                let mousePosition = new v2d(this.mousePosition.x * this.viewboxScale, this.mousePosition.y * this.viewboxScale);
+                let viewBoxPosition = new v2d(this.viewboxPosition.x, this.viewboxPosition.y);
+                let cpos = new v2d(mousePosition.x + viewBoxPosition.x, mousePosition.y + viewBoxPosition.y);
 
-            this.setViewbox();
+                this.viewboxPosition.x = (this.viewboxPosition.x - cpos.x) * scale + cpos.x;
+                this.viewboxPosition.y = (this.viewboxPosition.y - cpos.y) * scale + cpos.y;
+                this.viewboxScale *= scale;
+
+                this.setViewbox();
+            }
         }
-        // if ($event.shiftKey) {
-        //     let diff = $event.deltaY;
-        //
-        //     if (this.viewBox.width - diff > 0)
-        //         this.viewBox.width -= diff;
-        //     if (this.viewBox.height - diff > 0)
-        //         this.viewBox.height -= diff;
-        // }
-        // $event.stopImmediatePropagation();
-        // $event.stopPropagation();
     }
 
     public onMouseDown($event: MouseEvent, figure?: Figure) {
-        this.isMouseDown = true;
-
         if ($event.shiftKey) {
+            this.isMouseDown = true;
+            this.mouseStartPosition.x = $event.pageX;
+            this.mouseStartPosition.y = $event.pageY;
+
+            this.viewboxStartPosition.x = this.viewboxPosition.x;
+            this.viewboxStartPosition.y = this.viewboxPosition.y;
+
             if (figure && figure.isDraggable) {
                 this.draggedNode = figure;
                 this.draggedNode.isDragged = true;
             }
-            // if (this.draggingNodeInterpolation) clearInterval(this.draggingNodeInterpolation);
-            // this.draggingNodeInterpolation = setInterval(() => {
-            //     if (figure && figure.isDraggable)
-            //         this.moveFigureTo(figure, this.svgMousePosition);
-            //     else {
-            //         let diff = this.mousePosition.subtract(this.previousMousePosition);
-            //         if (!isNaN(diff.x))
-            //             this.viewBox.minX -= diff.x;
-            //         if (!isNaN(diff.y))
-            //             this.viewBox.minY -= diff.y;
-            //     }
-            // }, 0);
 
             $event.stopImmediatePropagation();
         }
     }
 
-    private setViewbox() {
-        this.viewBox = {
-            minX: this.viewboxPosition.x,
-            minY: this.viewboxPosition.y,
-            width: this.viewboxSize.x * this.viewboxScale,
-            height: this.viewboxSize.y * this.viewboxScale,
-        };
-    }
-
     public onMouseUp($event: MouseEvent) {
-        this.mouseStartPosition = new v2d($event.pageX, $event.pageY);
-        this.viewboxStartPosition = new v2d($event.pageX, $event.pageY);
+        if ($event.shiftKey) {
+            this.mouseStartPosition = new v2d($event.pageX, $event.pageY);
+            this.viewboxStartPosition = new v2d($event.pageX, $event.pageY);
+        }
 
         this.isMouseDown = false;
         setTimeout(() => {
@@ -229,5 +212,15 @@ export class DiagramComponent implements AfterViewInit, OnChanges {
     public printViewBox(): string {
         let result = `${ this.viewBox.minX } ${ this.viewBox.minY } ${ this.viewBox.width } ${ this.viewBox.height }`;
         return result;
+    }
+
+    private setViewbox() {
+        // console.log('asbc', this.viewBox);
+        this.viewBox = {
+            minX: this.viewboxPosition.x,
+            minY: this.viewboxPosition.y,
+            width: this.viewboxSize.x * this.viewboxScale,
+            height: this.viewboxSize.y * this.viewboxScale,
+        };
     }
 }
